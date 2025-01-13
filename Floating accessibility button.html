@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Accessibility Button</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/govuk-frontend@4.6.0/govuk/all.css">
+    <style>
+        .accessibility-button {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 1000;
+            background-color: #005ea5;
+            color: #ffffff;
+            border: none;
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        .accessibility-button:hover {
+            background-color: #003778;
+        }
+        .accessibility-menu {
+            position: fixed;
+            bottom: 100px;
+            right: 20px;
+            background-color: #ffffff;
+            border: 1px solid #dcdcdc;
+            border-radius: 5px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+            display: none;
+            width: 300px;
+            z-index: 1000;
+            padding: 15px;
+        }
+        .accessibility-menu ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        .accessibility-menu ul li {
+            margin: 10px 0;
+        }
+        .accessibility-menu ul li button {
+            width: 100%;
+            background: none;
+            border: 2px solid #005ea5;
+            border-radius: 4px;
+            padding: 12px;
+            text-align: left;
+            font-size: 16px;
+            cursor: pointer;
+            color: #0b0c0c;
+            transition: all 0.3s ease;
+        }
+        .accessibility-menu ul li button:hover {
+            background-color: #005ea5;
+            color: #ffffff;
+        }
+        .high-contrast {
+            background-color: #000000;
+            color: #ffffff;
+        }
+        .content {
+            filter: none;
+            transition: all 0.3s ease;
+            padding: 20px;
+        }
+        /* Enhanced colorblind modes */
+        .deuteranopia .content {
+            filter: hue-rotate(180deg) saturate(70%);
+        }
+        .protanopia .content {
+            filter: hue-rotate(140deg) saturate(85%);
+        }
+        .tritanopia .content {
+            filter: hue-rotate(45deg) saturate(40%);
+        }
+        .high-visibility .content {
+            filter: contrast(150%) brightness(120%);
+        }
+        .highlight {
+            background-color: #e0f7fa;
+            color: #004d40;
+            padding: 15px;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+        .narrator-controls {
+            display: none;
+            position: fixed;
+            bottom: 90px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: #ffffff;
+            border: 1px solid #dcdcdc;
+            border-radius: 5px;
+            padding: 15px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+            z-index: 1000;
+            transition: opacity 0.3s ease;
+        }
+        .narrator-controls.visible {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        .narrator-button {
+            padding: 10px 20px;
+            background-color: #005ea5;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .narrator-button:hover {
+            background-color: #003778;
+            transform: translateY(-1px);
+        }
+        .narrator-button:disabled {
+            background-color: #6f777b;
+            cursor: not-allowed;
+        }
+        .currently-reading {
+            background-color: #ffdd00;
+            transition: background-color 0.3s ease;
+        }
+        .speed-control {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .speed-control select {
+            padding: 5px;
+            border-radius: 4px;
+            border: 1px solid #005ea5;
+        }
+        .volume-control {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .volume-control input {
+            width: 100px;
+        }
+    </style>
+</head>
+<body>
+
+<!-- Accessibility Button -->
+<button class="accessibility-button" aria-label="Accessibility options" onclick="toggleAccessibilityMenu()">
+    <span aria-hidden="true">☰</span>
+</button>
+
+<!-- Accessibility Menu -->
+<div class="accessibility-menu" id="accessibilityMenu">
+    <ul>
+        <li><button onclick="increaseTextSize()">Increase Text Size</button></li>
+        <li><button onclick="decreaseTextSize()">Decrease Text Size</button></li>
+        <li><button onclick="toggleHighContrast()">High Contrast Mode</button></li>
+        <li><button onclick="cycleColorblindMode()">Cycle Color Modes</button></li>
+        <li><button onclick="toggleNarrator()">Toggle Narrator</button></li>
+    </ul>
+</div>
+
+<!-- Narrator Controls -->
+<div id="narratorControls" class="narrator-controls">
+    <button id="playPauseBtn" class="narrator-button" onclick="togglePlayPause()">
+        <span class="button-text">Play</span>
+    </button>
+    <button id="stopBtn" class="narrator-button" onclick="stopNarrator()">Stop</button>
+    <button id="prevBtn" class="narrator-button" onclick="previousSection()">Previous</button>
+    <button id="nextBtn" class="narrator-button" onclick="nextSection()">Next</button>
+    
+    <div class="speed-control">
+        <label for="speedSelect">Speed:</label>
+        <select id="speedSelect" onchange="changeSpeed()">
+            <option value="0.75">Slow</option>
+            <option value="1" selected>Normal</option>
+            <option value="1.25">Fast</option>
+            <option value="1.5">Very Fast</option>
+        </select>
+    </div>
+    
+    <div class="volume-control">
+        <label for="volumeControl">Volume:</label>
+        <input type="range" id="volumeControl" min="0" max="1" step="0.1" value="1" onchange="changeVolume()">
+    </div>
+</div>
+
+<!-- Main Content Wrapper -->
+<div class="content" id="mainContent">
+    <h1>Welcome to the GOV.UK Website</h1>
+    <p class="highlight">This is a sample content area to demonstrate accessibility features.</p>
+
+    <h2>Apply for your first provisional driving licence</h2>
+    <p>Get your first provisional driving licence for a car, motorbike, moped, or other vehicle from DVLA online. To apply you must:</p>
+    <ul>
+        <li>Be at least 15 years and 9 months old</li>
+        <li>Be able to read a number plate from 20 metres away</li>
+        <li>Have been given permission to live in Great Britain (England, Scotland, and Wales) for at least 185 days</li>
+    </ul>
+    <p class="highlight">It costs £34 when you apply online.</p>
+    <p>If you applied for a provisional licence before 1 March 1973, you'll need to use this service to get a new licence.</p>
+</div>
+
+<script>
+    const accessibilityMenu = document.getElementById('accessibilityMenu');
+    const narratorControls = document.getElementById('narratorControls');
+    const playPauseBtn = document.getElementById('playPauseBtn');
+    const mainContent = document.getElementById('mainContent');
+    const speedSelect = document.getElementById('speedSelect');
+    const volumeControl = document.getElementById('volumeControl');
+    
+    let isNarratorActive = false;
+    let currentParagraphIndex = 0;
+    let paragraphs = [];
+    let currentUtterance = null;
+    let voices = [];
+    let currentColorMode = 'normal';
+
+    // Initialize speech synthesis voices
+    window.speechSynthesis.onvoiceschanged = () => {
+        voices = window.speechSynthesis.getVoices();
+    };
+
+    const colorModes = [
+        'normal',
+        'deuteranopia',
+        'protanopia',
+        'tritanopia',
+        'high-visibility'
+    ];
+
+    function cycleColorblindMode() {
+        // Remove current mode
+        colorModes.forEach(mode => document.body.classList.remove(mode));
+        
+        // Get next mode
+        const currentIndex = colorModes.indexOf(currentColorMode);
+        const nextIndex = (currentIndex + 1) % colorModes.length;
+        currentColorMode = colorModes[nextIndex];
+        
+        // Apply new mode
+        document.body.classList.add(currentColorMode);
+    }
+
+    function toggleAccessibilityMenu() {
+        const isMenuVisible = accessibilityMenu.style.display === 'block';
+        accessibilityMenu.style.display = isMenuVisible ? 'none' : 'block';
+    }
+
+    function increaseTextSize() {
+        const currentSize = window.getComputedStyle(document.body).fontSize;
+        document.body.style.fontSize = `${parseFloat(currentSize) * 1.2}px`;
+    }
+
+    function decreaseTextSize() {
+        const currentSize = window.getComputedStyle(document.body).fontSize;
+        document.body.style.fontSize = `${parseFloat(currentSize) * 0.8}px`;
+    }
+
+    function toggleHighContrast() {
+        document.body.classList.toggle('high-contrast');
+    }
+
+    function toggleNarrator() {
+        isNarratorActive = !isNarratorActive;
+        narratorControls.classList.toggle('visible');
+        
+        if (isNarratorActive) {
+            initializeNarrator();
+        } else {
+            stopNarrator();
+        }
+    }
+
+    function initializeNarrator() {
+        // Get all text elements
+        paragraphs = Array.from(mainContent.querySelectorAll('h1, h2, h3, p, li'))
+            .filter(element => element.textContent.trim().length > 0);
+        
+        currentParagraphIndex = 0;
+        updateHighlight();
+        playPauseBtn.querySelector('.button-text').textContent = 'Play';
+    }
+
+    function changeSpeed() {
+        const speed = parseFloat(speedSelect.value);
+        if (currentUtterance) {
+            currentUtterance.rate = speed;
+        }
+    }
+
+    function changeVolume() {
+        const volume = parseFloat(volumeControl.value);
+        if (currentUtterance) {
+            currentUtterance.volume = volume;
+        }
+    }
+
+    function togglePlayPause() {
+        if (speechSynthesis.speaking && !speechSynthesis.paused) {
+            speechSynthesis.pause();
+            playPauseBtn.querySelector('.button-text').textContent = 'Resume';
+        } else if (speechSynthesis.paused) {
+            speechSynthesis.resume();
+            playPauseBtn.querySelector('.button-text').textContent = 'Pause';
+        } else {
+            readCurrentParagraph();
+        }
+    }
+
+    function updateHighlight() {
+        paragraphs.forEach(p => p.classList.remove('currently-reading'));
+        if (paragraphs[currentParagraphIndex]) {
+            paragraphs[currentParagraphIndex].classList.add('currently-reading');
+            paragraphs[currentParagraphIndex].scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+    }
+
+    function readCurrentParagraph() {
+        if (currentParagraphIndex < paragraphs.length) {
+            updateHighlight();
+            
+            const text = paragraphs[currentParagraphIndex].textContent;
+            currentUtterance = new SpeechSynthesisUtterance(text);
+            
+            // Apply current settings
+            currentUtterance.rate = parseFloat(speedSelect.value);
+            currentUtterance.volume = parseFloat(volumeControl.value);
+            
+            // Use the first available voice (usually the best quality)
+            if (voices.length > 0) {
+                currentUtterance.voice = voices[0];
+            }
+            
+            currentUtterance.onend = () => {
+                currentParagraphIndex++;
+                if (currentParagraphIndex < paragraphs.length) {
+                    setTimeout(readCurrentParagraph, 500); // Add small pause between paragraphs
+                } else {
+                    currentParagraphIndex = 0;
+                    playPauseBtn.querySelector('.button-text').textContent = 'Play';
+                    updateHighlight();
+                }
+            };
+            
+            speechSynthesis.speak(currentUtterance);
+            playPauseBtn.querySelector('.button-text').textContent = 'Pause';
+        }
+    }
+
+    function stopNarrator() {
+        speechSynthesis.cancel();
+        currentParagraphIndex = 0;
+        playPauseBtn.querySelector('.button-text').textContent = 'Play';
+        paragraphs.forEach(p => p.classList.remove('currently-reading'));
+    }
+
+    function previousSection() {
+        speechSynthesis.cancel();
+        currentParagraphIndex = Math.max(0, currentParagraphIndex - 1);
+        updateHighlight();
+        readCurrentParagraph();
+    }
+
+    function nextSection() {
+        speechSynthesis.cancel();
+        currentParagraphIndex = Math.min(paragraphs.length - 1, currentParagraphIndex + 1);
+        updateHighlight();
+        readCurrentParagraph();
+    }
+
+    // Cleanup when leaving the page
+    window.onbeforeunload = function() {
+        speechSynthesis.cancel();
+    };
+
+    // Handle visibility change to prevent audio getting stuck
+    document.addEventListener('visibilitychange', () => {
+        if (document.hidden) {
+            speechSynthesis.pause();
+        } else {
+            speechSynthesis.resume();
+        }
+    });
+</script>
+
+</body>
+</html>
+
+
+
+
+
+   
